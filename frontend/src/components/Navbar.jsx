@@ -16,7 +16,7 @@ function Navbar() {
     { path: "/training", label: "Training" },
     { path: "/careers", label: "Careers" },
     { path: "/contact", label: "Contact" },
-    // { path: "/jobs", label: "Jobs" }
+    { path: "/serach-jobs", label: "Jobs" }
   ];
 
   return (

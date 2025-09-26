@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home"; // ✅ import Home properly
 import TrainingAndPlacements from "./pages/TrainingAndPlacement";
-// import Jobs from "./pages/Jobs";
+import Jobs from "./pages/Jobs";
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/training" element={<TrainingAndPlacements />} />
-          {/* <Route path="/jobs" element={<Jobs/>} /> */}
+          <Route path="/serach-jobs" element={<Jobs/>} />
         </Routes>
       </main>
       <Footer />
