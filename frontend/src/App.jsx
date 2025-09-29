@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home"; // ✅ import Home properly
 import TrainingAndPlacements from "./pages/TrainingAndPlacement";
 import Jobs from "./pages/Jobs";
+// import Services from "./components/Services";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/training" element={<TrainingAndPlacements />} />
           <Route path="/serach-jobs" element={<Jobs/>} />
+          
         </Routes>
       </main>
       <Footer />
