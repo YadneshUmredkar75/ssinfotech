@@ -1,403 +1,349 @@
-import { useMemo, useState } from "react";
-import { Search, MapPin, Briefcase, Clock } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, MapPin, Briefcase, Clock, DollarSign, X } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Sample job data
-const JOBS = [
-  {
-    id: "1",
-    title: "Frontend Developer",
-    company: "TechSolutions Pvt Ltd",
-    location: "Pune",
-    experience: "0-2 years",
-    type: "Full-time",
-    skills: ["React", "TypeScript", "Tailwind"],
-    postedAt: "2 days ago",
-    description:
-      "Build and maintain user-facing features using React, collaborate with designers and backend engineers, and ensure high performance and responsiveness of applications. Ideal for candidates with a good understanding of modern frontend tooling.",
-  },
-  {
-    id: "2",
-    title: "Junior Backend Engineer",
-    company: "DataEdge",
-    location: "Remote",
-    experience: "1-3 years",
-    type: "Full-time",
-    skills: ["Node.js", "Express", "Postgres"],
-    postedAt: "5 days ago",
-    description:
-      "Develop and maintain server-side logic, design APIs, and work with relational databases. Good opportunity to work on scalable systems and data-intensive applications.",
-  },
-  {
-    id: "3",
-    title: "Machine Learning Intern",
-    company: "AiCore Labs",
-    location: "Pune",
-    experience: "0-1 years",
-    type: "Internship",
-    skills: ["Python", "TensorFlow", "Pandas"],
-    postedAt: "1 week ago",
-    stipend: "₹12,000/month",
-    description:
-      "Assist in building and training ML models, preprocess data, and evaluate model performance. Mentorship provided for hands-on projects.",
-  },
-  {
-    id: "4",
-    title: "Cloud Engineer",
-    company: "CloudWorks",
-    location: "Mumbai",
-    experience: "2-4 years",
-    type: "Full-time",
-    skills: ["AWS", "Docker", "Kubernetes"],
-    postedAt: "3 days ago",
-    description:
-      "Design, deploy, and maintain cloud infrastructure using AWS services. Focus on reliability, scalability, and automation.",
-  },
-  {
-    id: "5",
-    title: "Full Stack Developer",
-    company: "WebCraft",
-    location: "Remote",
-    experience: "1-3 years",
-    type: "Contract",
-    skills: ["React", "Node.js", "GraphQL"],
-    postedAt: "2 weeks ago",
-    description:
-      "Work across the stack to deliver end-to-end features, from UI to backend APIs, with a strong emphasis on developer experience and testability.",
-  },
-];
-
-// Custom Button component
-function Button({ children, onClick, type = "button", disabled = false, variant = "default" }) {
-  const baseStyles = "px-4 py-2 rounded-md font-medium text-sm focus:outline-none focus:ring-2 focus:ring-offset-2";
-  const variantStyles = variant === "ghost" 
-    ? "bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-300"
-    : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500";
-  const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "";
-  
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseStyles} ${variantStyles} ${disabledStyles}`}
-    >
-      {children}
-    </button>
-  );
+// Time ago utility to format job posting dates
+function timeAgo(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  let interval = Math.floor(seconds / 31536000);
+  if (interval > 1) return `${interval} years ago`;
+  interval = Math.floor(seconds / 2592000);
+  if (interval > 1) return `${interval} months ago`;
+  interval = Math.floor(seconds / 86400);
+  if (interval > 1) return `${interval} days ago`;
+  interval = Math.floor(seconds / 3600);
+  if (interval > 1) return `${interval} hours ago`;
+  interval = Math.floor(seconds / 60);
+  if (interval > 1) return `${interval} minutes ago`;
+  return "just now";
 }
 
-// Custom Input component
-function Input({ value, onChange, placeholder, type = "text", required = false, className = "" }) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      required={required}
-      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
-    />
-  );
-}
+// Modal component for job application form
+function JobApplicationModal({ job, isOpen, onClose }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    resume: null,
+  });
 
-// Custom Badge component
-function Badge({ children, variant = "default", className = "" }) {
-  const variantStyles = variant === "outline" 
-    ? "border border-gray-300 bg-transparent text-gray-600"
-    : "bg-gray-100 text-gray-800";
-  
-  return (
-    <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${variantStyles} ${className}`}>
-      {children}
-    </span>
-  );
-}
+  const handleInputChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
 
-// Custom Card components
-function Card({ children, className = "" }) {
-  return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
-      {children}
-    </div>
-  );
-}
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Simulate form submission (log to console for demo)
+    console.log("Application submitted for job:", job.title, formData);
+    toast.success("Application submitted successfully!");
+    setFormData({ name: "", email: "", phone: "", resume: null });
+    onClose();
+  };
 
-function CardHeader({ children }) {
-  return <div className="p-4 border-b border-gray-200">{children}</div>;
-}
+  if (!isOpen) return null;
 
-function CardTitle({ children }) {
-  return <h2 className="text-lg font-semibold">{children}</h2>;
-}
-
-function CardDescription({ children }) {
-  return <p className="text-sm text-gray-500">{children}</p>;
-}
-
-function CardContent({ children }) {
-  return <div className="p-4">{children}</div>;
-}
-
-// Custom Select components
-function Select({ onValueChange, children }) {
-  const [value, setValue] = useState("");
-  return (
-    <select
-      value={value}
-      onChange={(e) => {
-        setValue(e.target.value);
-        onValueChange(e.target.value);
-      }}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      {children}
-    </select>
-  );
-}
-
-function SelectTrigger({ children, className = "" }) {
-  return <div className={`relative ${className}`}>{children}</div>;
-}
-
-function SelectValue({ placeholder }) {
-  return <>{placeholder}</>;
-}
-
-function SelectContent({ children }) {
-  return <>{children}</>;
-}
-
-function SelectItem({ value, children }) {
-  return <option value={value}>{children}</option>;
-}
-
-// Custom Dialog components
-function Dialog({ open, onOpenChange, children }) {
-  if (!open) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-lg w-full mx-4">{children}</div>
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Apply for {job.title}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your full name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              required
+              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your phone number"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Resume</label>
+            <input
+              type="file"
+              name="resume"
+              onChange={handleInputChange}
+              accept=".pdf,.doc,.docx"
+              required
+              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Submit Application
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
 
-function DialogContent({ children }) {
-  return <div className="p-6">{children}</div>;
-}
-
-function DialogHeader({ children }) {
-  return <div className="mb-4">{children}</div>;
-}
-
-function DialogTitle({ children }) {
-  return <h2 className="text-xl font-semibold">{children}</h2>;
-}
-
-function DialogDescription({ children }) {
-  return <p className="text-sm text-gray-500">{children}</p>;
-}
-
-function DialogFooter({ children }) {
-  return <div className="flex justify-end mt-4">{children}</div>;
-}
-
-function DialogClose({ children, asChild }) {
-  return <>{children}</>;
-}
-
-// ApplyForm component for job application
-function ApplyForm({ onSubmit }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [resume, setResume] = useState(null);
-  const [error, setError] = useState(null);
-
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-  const allowed = [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+export default function JobSearch() {
+  // Fake admin jobs data
+  const adminJobs = [
+    {
+      id: "admin-1",
+      title: "Full Stack Developer",
+      company: "Your Company",
+      location: "Remote",
+      experience: "2-4 years",
+      type: "Full-time",
+      skills: ["React", "Node.js", "MongoDB"],
+      postedAt: new Date().toISOString(),
+      description: "We're looking for a talented Full Stack Developer to join our team and build amazing web applications.",
+      salary: "₹15-20 LPA",
+      category: "Technology",
+      isAdmin: true,
+    },
+    {
+      id: "admin-2",
+      title: "UI/UX Designer",
+      company: "Your Company",
+      location: "Pune, India",
+      experience: "1-3 years",
+      type: "Full-time",
+      skills: ["Figma", "Adobe XD", "Prototyping"],
+      postedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      description: "Creative UI/UX Designer needed to design intuitive user interfaces for our products.",
+      salary: "₹10-15 LPA",
+      category: "Design",
+      isAdmin: true,
+    },
+    {
+      id: "admin-3",
+      title: "DevOps Engineer",
+      company: "Your Company",
+      location: "Bangalore, India",
+      experience: "3-5 years",
+      type: "Full-time",
+      skills: ["AWS", "Docker", "Kubernetes"],
+      postedAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+      description: "Experienced DevOps Engineer to manage our cloud infrastructure and CI/CD pipelines.",
+      salary: "₹18-25 LPA",
+      category: "Technology",
+      isAdmin: true,
+    },
   ];
 
-  function handleFileChange(f) {
-    setError(null);
-    if (!f || f.length === 0) {
-      setResume(null);
-      return;
-    }
-    const file = f[0];
-    if (!allowed.includes(file.type)) {
-      setError("Only PDF, DOC, and DOCX files are allowed.");
-      setResume(null);
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      setError("File too large. Max size is 5MB.");
-      setResume(null);
-      return;
-    }
-    setResume(file);
-  }
+  // State for search and filters
+  const [query, setQuery] = useState(""); // Search query (job title, company, skills)
+  const [location, setLocation] = useState(""); // Location filter
+  const [experience, setExperience] = useState(undefined); // Experience filter
+  const [jobType, setJobType] = useState(undefined); // Job type filter
+  const [category, setCategory] = useState(undefined); // Category filter
+  const [selectedSkills, setSelectedSkills] = useState([]); // Multi-select skills
+  const [salaryRange, setSalaryRange] = useState(undefined); // Salary range filter
+  const [postedWithin, setPostedWithin] = useState(undefined); // Posted within filter
+  const [visible, setVisible] = useState(4); // Number of jobs to display
+  const [saved, setSaved] = useState({}); // Saved jobs
+  const [adzunaJobs, setAdzunaJobs] = useState([]); // Fetched job listings from API
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+  const [selectedJob, setSelectedJob] = useState(null); // Track selected job for modal
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal open state
 
-  const canSubmit = name.trim() !== "" && email.trim() !== "" && !error;
+  // Adzuna API credentials (replace with your own from developer.adzuna.com)
+  const ADZUNA_APP_ID = "2cd271a8";
+  const ADZUNA_APP_KEY = "16d6613015ae761f23bb5cbd92aee308";
 
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!canSubmit) return;
-        onSubmit({
-          name: name.trim(),
-          email: email.trim(),
-          message: message.trim() || undefined,
-          resume,
-        });
-      }}
-      className="space-y-3"
-    >
-      <div>
-        <label className="text-sm">Name</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label className="text-sm">Email</label>
-        <Input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          required
-        />
-      </div>
-      <div>
-        <label className="text-sm">Message</label>
-        <Input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-      </div>
-      <div>
-        <label className="text-sm">Resume (optional)</label>
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          onChange={(e) => handleFileChange(e.target.files)}
-          className="mt-2"
-        />
-        {resume && <p className="text-sm mt-1">Selected: {resume.name}</p>}
-        {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
-      </div>
-      <div className="flex justify-end">
-        <Button type="submit" disabled={!canSubmit}>
-          Submit Application
-        </Button>
-      </div>
-    </form>
-  );
-}
+  // Combine admin jobs and Adzuna jobs
+  const allJobs = useMemo(() => [...adminJobs, ...adzunaJobs], [adzunaJobs]);
 
-// Main JobSearch component
-export default function JobSearch() {
-  const [query, setQuery] = useState("");
-  const [location, setLocation] = useState(undefined);
-  const [experience, setExperience] = useState(undefined);
-  const [jobType, setJobType] = useState(undefined);
-  const [visible, setVisible] = useState(4);
-  const [saved, setSaved] = useState({});
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // Fetch jobs from Adzuna API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      if (!ADZUNA_APP_ID || !ADZUNA_APP_KEY || ADZUNA_APP_ID === "YOUR_ADZUNA_APP_ID") {
+        setError("Please set your Adzuna API credentials.");
+        setLoading(false);
+        return;
+      }
 
-  // Memoize unique locations for the location filter
-  const locations = useMemo(() => Array.from(new Set(JOBS.map((j) => j.location))), []);
+      try {
+        setLoading(true);
+        // Construct Adzuna API URL with filters
+        let url = `https://api.adzuna.com/v1/api/jobs/in/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&results_per_page=50`;
 
-  // Define experience levels
-  const experiences = ["0-1 years", "0-2 years", "1-3 years", "2-4 years", "4+ years"];
+        if (query) url += `&what=${encodeURIComponent(query)}`;
+        if (location) url += `&where=${encodeURIComponent(location)}`;
+        if (category && category !== "__any") url += `&category=${encodeURIComponent(category)}`;
+        if (salaryRange) {
+          const [min, max] = salaryRange.split("₹")[1].split("-").map((s) => parseInt(s.replace(" LPA", "")) * 100000);
+          url += `&salary_min=${min}${max ? `&salary_max=${max}` : ""}`;
+        }
+        if (postedWithin && postedWithin !== "Any") {
+          const days = { "Last 24 hours": 1, "Last 7 days": 7, "Last 30 days": 30 };
+          url += `&days_since_added=${days[postedWithin]}`;
+        }
 
-  // Memoize unique job types
-  const types = useMemo(() => Array.from(new Set(JOBS.map((j) => j.type))), []);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("API request failed");
+        const data = await response.json();
+        // Transform Adzuna data to match app structure
+        const transformedJobs = data.results.map((job) => ({
+          id: job.id,
+          title: job.title,
+          company: job.company.display_name,
+          location: job.location.display_name,
+          experience: job.experience ? job.experience.label : "Not specified",
+          type: job.contract_time ? job.contract_time : "Full-time",
+          skills: job.category.tag ? job.category.tag.split(", ") : [],
+          postedAt: new Date(job.created).toISOString(),
+          description: job.description,
+          salary: job.salary_is_predicted === "0" ? (job.salary_max ? `₹${(job.salary_max / 100000).toFixed(1)} LPA` : "Not specified") : "Not specified",
+          category: job.category.tag || "Other",
+          redirect_url: job.redirect_url || "#",
+          isAdmin: false, // Mark as non-admin
+        }));
+        setAdzunaJobs(transformedJobs);
+        setLoading(false);
+      } catch (err) {
+        setError(`Failed to fetch jobs: ${err.message}`);
+        setLoading(false);
+      }
+    };
 
-  // Filter jobs based on search query and filters
+    fetchJobs();
+  }, [query, location, category, salaryRange, postedWithin]);
+
+  // Memoized filter options
+  const locations = useMemo(() => Array.from(new Set(allJobs.map((j) => j.location))), [allJobs]);
+  const experiences = ["0-1 years", "1-3 years", "2-4 years", "4+ years"];
+  const types = useMemo(() => Array.from(new Set(allJobs.map((j) => j.type))), [allJobs]);
+  const skills = useMemo(() => Array.from(new Set(allJobs.flatMap((j) => j.skills))), [allJobs]);
+  const categories = useMemo(() => Array.from(new Set(allJobs.map((j) => j.category))), [allJobs]);
+  const salaryRanges = ["₹5-10 LPA", "₹10-15 LPA", "₹15-20 LPA", "₹20+ LPA"];
+  const postedWithinOptions = ["Any", "Last 24 hours", "Last 7 days", "Last 30 days"];
+
+  // Client-side filtering for experience, job type, and skills
   const filtered = useMemo(() => {
-    return JOBS.filter((job) => {
-      const matchesQuery = [job.title, job.company, job.skills.join(" ")]
-        .join(" ")
-        .toLowerCase()
-        .includes(query.toLowerCase());
-      const matchesLocation = location ? job.location === location : true;
+    return allJobs.filter((job) => {
       const matchesExperience = experience ? job.experience === experience : true;
       const matchesType = jobType ? job.type === jobType : true;
-      return matchesQuery && matchesLocation && matchesExperience && matchesType;
+      const matchesSkills = selectedSkills.length > 0 ? selectedSkills.every((skill) => job.skills.includes(skill)) : true;
+      return matchesExperience && matchesType && matchesSkills;
     });
-  }, [query, location, experience, jobType]);
+  }, [allJobs, experience, jobType, selectedSkills]);
 
-  // Toggle save state for a job
-  const toggleSave = (id) => {
-    setSaved((s) => ({ ...s, [id]: !s[id] }));
+
+  // Toggle skill selection
+  const toggleSkill = (skill) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  };
+
+  // Handle View & Apply button click
+  const handleViewApply = (job) => {
+    if (job.isAdmin) {
+      // For admin jobs, open application modal
+      setSelectedJob(job);
+      setIsModalOpen(true);
+    } else {
+      // For Adzuna jobs, redirect to original posting
+      if (job.redirect_url && job.redirect_url !== "#") {
+        window.open(job.redirect_url, "_blank");
+      } else {
+        toast.error("No application link available for this job.");
+      }
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <ToastContainer />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-50 min-h-screen">
+      <ToastContainer position="top-right" autoClose={3000} />
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl lg:text-4xl font-bold">Job Search</h1>
-        <p className="text-gray-500 mt-2">
-          Find relevant roles, filter by experience, location, and type. Apply or save listings for later.
-        </p>
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-800">Job Search</h1>
+        <p className="text-gray-500 mt-2 text-lg">Explore opportunities across all industries and roles.</p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search and Location Filter */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
         <div className="lg:col-span-2 flex items-center space-x-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by job title, company, or skills"
-              className="pl-10"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
             />
           </div>
-          <Button
+          <button
             onClick={() => {
               setQuery("");
-              setLocation(undefined);
+              setLocation("");
               setExperience(undefined);
               setJobType(undefined);
+              setCategory(undefined);
+              setSelectedSkills([]);
+              setSalaryRange(undefined);
+              setPostedWithin(undefined);
             }}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-medium text-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors duration-200"
           >
             Reset
-          </Button>
+          </button>
         </div>
-        <div className="flex items-center space-x-2">
-          <Select
-            onValueChange={(val) => setLocation(val === "__any" ? undefined : val)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue
-                placeholder={
-                  <span className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>Location</span>
-                  </span>
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__any">All</SelectItem>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>
-                  {loc}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter location (e.g., Pune, India)"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -405,216 +351,358 @@ export default function JobSearch() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar with Filters */}
         <aside className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Filters</CardTitle>
-              <CardDescription>Refine results to find the best matches</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Experience</label>
-                  <Select
-                    onValueChange={(val) => setExperience(val === "__any" ? undefined : val)}
-                  >
-                    <SelectTrigger className="w-full mt-2">
-                      <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__any">Any</SelectItem>
-                      {experiences.map((exp) => (
-                        <SelectItem key={exp} value={exp}>
-                          {exp}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Job Type</label>
-                  <Select
-                    onValueChange={(val) => setJobType(val === "__any" ? undefined : val)}
-                  >
-                    <SelectTrigger className="w-full mt-2">
-                      <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__any">Any</SelectItem>
-                      {types.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Skills</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {Array.from(new Set(JOBS.flatMap((j) => j.skills))).map((skill) => (
-                      <Badge key={skill} className="cursor-default">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">
-                    Saved <strong>{Object.keys(saved).filter((k) => saved[k]).length}</strong> jobs
-                  </p>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Filters</h2>
+            <div className="space-y-6">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Category</label>
+                <select
+                  onChange={(e) => setCategory(e.target.value === "__any" ? undefined : e.target.value)}
+                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
+                >
+                  <option value="__any">Any</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Experience</label>
+                <select
+                  onChange={(e) => setExperience(e.target.value === "__any" ? undefined : e.target.value)}
+                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
+                >
+                  <option value="__any">Any</option>
+                  {experiences.map((exp) => (
+                    <option key={exp} value={exp}>
+                      {exp}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Job Type</label>
+                <select
+                  onChange={(e) => setJobType(e.target.value === "__any" ? undefined : e.target.value)}
+                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
+                >
+                  <option value="__any">Any</option>
+                  {types.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Skills</label>
+                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+                  {skills.map((skill) => (
+                    <label key={skill} className="flex items-center space-x-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedSkills.includes(skill)}
+                        onChange={() => toggleSkill(skill)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>{skill}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Tips</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc ml-5 text-sm space-y-2">
-                <li>Use specific keywords (e.g., React, Node.js) to narrow results.</li>
-                <li>Apply quickly to new listings — add them to your saved list first.</li>
-                <li>Filter by experience and location to find the best fit.</li>
-              </ul>
-            </CardContent>
-          </Card>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Salary Range</label>
+                <select
+                  onChange={(e) => setSalaryRange(e.target.value === "__any" ? undefined : e.target.value)}
+                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
+                >
+                  <option value="__any">Any</option>
+                  {salaryRanges.map((range) => (
+                    <option key={range} value={range}>
+                      {range}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Posted Within</label>
+                <select
+                  onChange={(e) => setPostedWithin(e.target.value === "__any" ? undefined : e.target.value)}
+                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200 hover:shadow-sm"
+                >
+                  <option value="__any">Any</option>
+                  {postedWithinOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">
+                  Saved <strong>{Object.keys(saved).filter((k) => saved[k]).length}</strong> jobs
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Tips</h2>
+            <ul className="list-disc ml-5 text-sm text-gray-600 space-y-2">
+              <li>Use specific keywords (e.g., nurse, accountant) to narrow results.</li>
+              <li>Apply quickly to new listings — save them for later review.</li>
+              <li>Filter by category and salary to find the best fit.</li>
+            </ul>
+          </div>
         </aside>
 
         {/* Job Listings */}
         <section className="lg:col-span-3 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              Showing <strong>{filtered.length}</strong> results
-            </p>
-            <div className="text-sm text-gray-500">
-              Sorted by <strong>Relevance</strong>
+          {loading && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Loading jobs For You...</p>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.slice(0, visible).map((job) => (
-              <Card key={job.id} className="hover:shadow-lg transition-shadow">
-                <CardContent>
-                  <div className="flex items-start justify-between">
-                    <div
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setDialogOpen(true);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-gray-100 rounded-md p-3">
-                          <Briefcase className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">{job.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            {job.company} • {job.location}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline">{job.experience}</Badge>
-                        <Badge variant="outline">{job.type}</Badge>
-                        {job.skills.slice(0, 3).map((s) => (
-                          <Badge key={s} className="bg-gray-100 text-gray-800">
-                            {s}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="mt-4 text-sm text-gray-500 flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {job.postedAt}
-                        </span>
-                        {job.stipend && (
-                          <span className="flex items-center gap-1">💰 {job.stipend}</span>
-                        )}
-                      </div>
-                      <div className="mt-4">
-                        <p className="text-sm">{job.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end space-y-2">
-                      <Button
-                        onClick={() => {
-                          setSelectedJob(job);
-                          setDialogOpen(true);
-                        }}
+          )}
+          {error && (
+            <div className="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+              {error}
+            </div>
+          )}
+          {!loading && !error && (
+            <>
+              {/* Admin Jobs Section - Always at top */}
+              {adminJobs.filter((job) => {
+                const matchesExperience = experience ? job.experience === experience : true;
+                const matchesType = jobType ? job.type === jobType : true;
+                const matchesSkills = selectedSkills.length > 0 ? selectedSkills.every((skill) => job.skills.includes(skill)) : true;
+                const matchesQuery = !query || job.title.toLowerCase().includes(query.toLowerCase()) || job.company.toLowerCase().includes(query.toLowerCase()) || job.skills.some(s => s.toLowerCase().includes(query.toLowerCase()));
+                const matchesLocation = !location || job.location.toLowerCase().includes(location.toLowerCase());
+                const matchesCategory = !category || job.category === category;
+                const matchesSalary = !salaryRange || job.salary.startsWith(salaryRange.split("-")[0]);
+                const matchesPostedWithin = !postedWithin || (postedWithin === "Any" || timeAgo(job.postedAt) === postedWithin);
+                return matchesQuery && matchesLocation && matchesCategory && matchesSalary && matchesExperience && matchesType && matchesSkills && matchesPostedWithin;
+              }).length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Your Company Jobs</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {adminJobs.filter((job) => {
+                      const matchesExperience = experience ? job.experience === experience : true;
+                      const matchesType = jobType ? job.type === jobType : true;
+                      const matchesSkills = selectedSkills.length > 0 ? selectedSkills.every((skill) => job.skills.includes(skill)) : true;
+                      const matchesQuery = !query || job.title.toLowerCase().includes(query.toLowerCase()) || job.company.toLowerCase().includes(query.toLowerCase()) || job.skills.some(s => s.toLowerCase().includes(query.toLowerCase()));
+                      const matchesLocation = !location || job.location.toLowerCase().includes(location.toLowerCase());
+                      const matchesCategory = !category || job.category === category;
+                      const matchesSalary = !salaryRange || job.salary.startsWith(salaryRange.split("-")[0]);
+                      const matchesPostedWithin = !postedWithin || (postedWithin === "Any" || timeAgo(job.postedAt) === postedWithin);
+                      return matchesQuery && matchesLocation && matchesCategory && matchesSalary && matchesExperience && matchesType && matchesSkills && matchesPostedWithin;
+                    }).slice(0, visible).map((job) => (
+                      <div
+                        key={job.id}
+                        className="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
                       >
-                        View & Apply
-                      </Button>
-                      <Button variant="ghost" onClick={() => toggleSave(job.id)}>
-                        {saved[job.id] ? "Saved" : "Save"}
-                      </Button>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3">
+                                <div className="bg-blue-100 rounded-md p-3">
+                                  <Briefcase className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-semibold text-gray-800">{job.title}</h3>
+                                  <p className="text-sm text-gray-500">
+                                    {job.company} • {job.location}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full border border-gray-300 text-gray-600">
+                                  {job.experience}
+                                </span>
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full border border-gray-300 text-gray-600">
+                                  {job.type}
+                                </span>
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full border border-blue-300 bg-blue-50 text-blue-700">
+                                  Company Job
+                                </span>
+                                {job.skills.slice(0, 3).map((s) => (
+                                  <span
+                                    key={s}
+                                    className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                                  >
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="mt-4 text-sm text-gray-500 flex items-center gap-4">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  {timeAgo(job.postedAt)}
+                                </span>
+                                {job.salary && (
+                                  <span className="flex items-center gap-1">
+                                    <DollarSign className="h-4 w-4" />
+                                    {job.salary}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-4">
+                                <p className="text-sm text-gray-600 line-clamp-3">{job.description}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end space-y-2">
+                              <button
+                                onClick={() => handleViewApply(job)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                              >
+                                View & Apply
+                              </button>
+                            
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {adminJobs.filter((job) => {
+                    const matchesExperience = experience ? job.experience === experience : true;
+                    const matchesType = jobType ? job.type === jobType : true;
+                    const matchesSkills = selectedSkills.length > 0 ? selectedSkills.every((skill) => job.skills.includes(skill)) : true;
+                    const matchesQuery = !query || job.title.toLowerCase().includes(query.toLowerCase()) || job.company.toLowerCase().includes(query.toLowerCase()) || job.skills.some(s => s.toLowerCase().includes(query.toLowerCase()));
+                    const matchesLocation = !location || job.location.toLowerCase().includes(location.toLowerCase());
+                    const matchesCategory = !category || job.category === category;
+                    const matchesSalary = !salaryRange || job.salary.startsWith(salaryRange.split("-")[0]);
+                    const matchesPostedWithin = !postedWithin || (postedWithin === "Any" || timeAgo(job.postedAt) === postedWithin);
+                    return matchesQuery && matchesLocation && matchesCategory && matchesSalary && matchesExperience && matchesType && matchesSkills && matchesPostedWithin;
+                  }).length > visible && (
+                    <div className="text-center mt-4">
+                      <button
+                        onClick={() => setVisible((v) => v + 4)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                      >
+                        Load more company jobs
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Adzuna Jobs Section */}
+              {adzunaJobs.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Other Opportunities</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm text-gray-500">
+                      Showing <strong>{filtered.filter(job => !job.isAdmin).length}</strong> results
+                    </p>
+                    <div className="text-sm text-gray-500">
+                      Sorted by <strong>Relevance</strong>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {filtered.length === 0 && (
-            <Card>
-              <CardContent>
-                <p className="text-sm text-gray-500">
-                  No jobs matched your search. Try adjusting filters or keywords.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-          <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{selectedJob?.title}</DialogTitle>
-                <DialogDescription>
-                  {selectedJob?.company} • {selectedJob?.location}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="mt-4 space-y-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline">{selectedJob?.experience}</Badge>
-                  <Badge variant="outline">{selectedJob?.type}</Badge>
-                  {selectedJob?.skills?.map((s) => (
-                    <Badge key={s} className="bg-gray-100 text-gray-800">
-                      {s}
-                    </Badge>
-                  ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filtered.filter(job => !job.isAdmin).slice(0, visible).map((job) => (
+                      <div
+                        key={job.id}
+                        className="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+                      >
+                        <div className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3">
+                                <div className="bg-gray-100 rounded-md p-3">
+                                  <Briefcase className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-semibold text-gray-800">{job.title}</h3>
+                                  <p className="text-sm text-gray-500">
+                                    {job.company} • {job.location}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full border border-gray-300 text-gray-600">
+                                  {job.experience}
+                                </span>
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full border border-gray-300 text-gray-600">
+                                  {job.type}
+                                </span>
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full border border-gray-300 text-gray-600">
+                                  {job.category}
+                                </span>
+                                {job.skills.slice(0, 3).map((s) => (
+                                  <span
+                                    key={s}
+                                    className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                                  >
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="mt-4 text-sm text-gray-500 flex items-center gap-4">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  {timeAgo(job.postedAt)}
+                                </span>
+                                {job.salary && (
+                                  <span className="flex items-center gap-1">
+                                    <DollarSign className="h-4 w-4" />
+                                    {job.salary}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-4">
+                                <p className="text-sm text-gray-600 line-clamp-3">{job.description}</p>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end space-y-2">
+                              <button
+                                onClick={() => handleViewApply(job)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                              >
+                                View & Apply
+                              </button>
+                              <button
+                                onClick={() => toggleSave(job.id)}
+                                className="px-4 py-2 bg-transparent text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded-md font-medium text-sm transition-colors duration-200"
+                              >
+                                {saved[job.id] ? "Saved" : "Save"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {filtered.filter(job => !job.isAdmin).length === 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4 text-center">
+                      <p className="text-sm text-gray-500">
+                        No jobs matched your search. Try adjusting filters or keywords.
+                      </p>
+                    </div>
+                  )}
+                  {visible < filtered.filter(job => !job.isAdmin).length && (
+                    <div className="text-center mt-4">
+                      <button
+                        onClick={() => setVisible((v) => v + 4)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                      >
+                        Load more
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-medium">Job Description</h4>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {selectedJob?.description}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-medium">How to Apply</h4>
-                  <ApplyForm
-                    onSubmit={(payload) => {
-                      const resumeText = payload.resume
-                        ? ` with resume (${payload.resume.name})`
-                        : "";
-                      toast.success(`Application submitted${resumeText}.`);
-                      setDialogOpen(false);
-                    }}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="ghost" onClick={() => setDialogOpen(false)}>
-                    Close
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          {visible < filtered.length && (
-            <div className="text-center mt-4">
-              <Button onClick={() => setVisible((v) => v + 4)}>Load more</Button>
-            </div>
+              )}
+            </>
           )}
         </section>
       </div>
+
+      {/* Job Application Modal */}
+      <JobApplicationModal
+        job={selectedJob}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

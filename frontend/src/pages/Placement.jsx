@@ -1,3 +1,4 @@
+import { useRef } from "react"; // Import useRef from React
 import { Button } from "../components/UI/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/UI/Card";
 import { Badge } from "../components/UI/Badge";
@@ -35,6 +36,14 @@ import {
 } from "lucide-react";
 
 export default function Placements() {
+  // Create a ref for the registration form section
+  const registrationFormRef = useRef(null);
+
+  // Function to scroll to the registration form
+  const scrollToForm = () => {
+    registrationFormRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const upcomingDrives = [
     {
       company: "Tata Consultancy Services (TCS)",
@@ -362,6 +371,7 @@ export default function Placements() {
                               : "w-full bg-gray-400 cursor-not-allowed"
                           }
                           disabled={drive.status !== "Registration Open"}
+                          onClick={scrollToForm} // Add onClick to scroll to form
                         >
                           {drive.status === "Registration Open" ? "Register Now" : "Coming Soon"}
                           <ArrowRight className="ml-2 h-4 w-4" />
@@ -475,38 +485,8 @@ export default function Placements() {
         </div>
       </section>
 
-      {/* Partner Companies */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl font-bold text-foreground">Our Placement Partners</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              200+ companies trust us to provide them with skilled and job-ready professionals
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {partnerCompanies.map((company, index) => (
-              <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-4 text-center space-y-2">
-                  <img 
-                    src={company.logo} 
-                    alt={company.name}
-                    className="w-12 h-12 object-contain mx-auto"
-                  />
-                  <div>
-                    <div className="font-medium text-sm">{company.name}</div>
-                    <div className="text-xs text-muted-foreground">{company.type}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Registration Form */}
-      <section className="py-20">
+      <section ref={registrationFormRef} className="py-20"> {/* Add ref to the section */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-4xl font-bold text-foreground">Register for Placement Drives</h2>
