@@ -38,7 +38,7 @@ export default function SsGbranch() {
   return (
     <div
       ref={containerRef}
-      className="flex items-center justify-center relative min-h-[600px]"
+      className="flex items-center justify-center relative min-h-[500px]"
     >
       {/* Orbit animation */}
       <style>{`
@@ -77,8 +77,7 @@ export default function SsGbranch() {
         <div className="relative z-20 flex items-center justify-center">
         <div
             className={`transition-all duration-500 ease-in-out 
-            ${hovered ? "w-48 h-48" : "w-72 h-72"} 
-            rounded-full  flex items-center justify-center cursor-pointer select-none`}
+            w-96 h-96  rounded-full  flex items-center justify-center cursor-pointer select-none`}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             onTouchStart={() => setHovered(true)}

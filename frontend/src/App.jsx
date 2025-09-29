@@ -5,6 +5,9 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home"; // ✅ import Home properly
 import TrainingAndPlacements from "./pages/TrainingAndPlacement";
 import Jobs from "./pages/Jobs";
+import AboutUs from "./pages/AboutUs";
+import ServicePage from "./pages/ServicePage";
+import ContactPage from "./pages/ContactUs"
 
 function App() {
   return (
@@ -15,6 +18,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/training" element={<TrainingAndPlacements />} />
           <Route path="/serach-jobs" element={<Jobs/>} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/services" element={<ServicePage/>} />
+          <Route path="/contact" element={<ContactPage/>} />
         </Routes>
       </main>
       <Footer />
