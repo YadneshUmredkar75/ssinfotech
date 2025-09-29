@@ -13,10 +13,11 @@ function Navbar() {
     { path: "/", label: "Home" },
     { path: "/about", label: "About Us" },
     { path: "/services", label: "Services" },
-    { path: "/training", label: "Training" },
     // { path: "/careers", label: "Careers" },
     { path: "/contact", label: "Contact" },
     { path: "/serach-jobs", label: "Jobs" },
+        { path: "/training", label: "Training" },
+
     { path: "/placements", label: "Placements" }
 
   ];
