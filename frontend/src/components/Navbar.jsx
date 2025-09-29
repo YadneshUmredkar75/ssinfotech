@@ -14,9 +14,11 @@ function Navbar() {
     { path: "/about", label: "About Us" },
     { path: "/services", label: "Services" },
     { path: "/training", label: "Training" },
-    { path: "/careers", label: "Careers" },
+    // { path: "/careers", label: "Careers" },
     { path: "/contact", label: "Contact" },
-    { path: "/serach-jobs", label: "Jobs" }
+    { path: "/serach-jobs", label: "Jobs" },
+    { path: "/placements", label: "Placements" }
+
   ];
 
   return (
