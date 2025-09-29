@@ -25,15 +25,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/training" element={<TrainingAndPlacements />} />
           <Route path="/serach-jobs" element={<Jobs/>} />
-<<<<<<< HEAD
           <Route path="/placements" element={<Placements/>}/>
-=======
 
           <Route path="/about" element={<AboutUs />} />
           <Route path="/services" element={<ServicePage/>} />
           <Route path="/contact" element={<ContactPage/>} />
-
->>>>>>> da739e9fc83fa218cdbe2480ac89c6ffd4f5bd2a
         </Routes>
       </main>
       <Footer />
