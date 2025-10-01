@@ -1,442 +1,375 @@
-// import React from "react";
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/UI/Card";
+import { Badge } from "../components/UI/Badge";
+import { Button } from "../components/UI/Button";
+import { Input } from "../components/UI/Input";
+import { Textarea } from "../components/UI/Textarea";
+import { Label } from "../components/UI/Label ";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/UI/Select";
+import { toast } from "../Hooks/use-toast";
+import {
+  Code,
+  Cpu,
+  Smartphone,
+  Megaphone,
+  BookOpen,
+  Users,
+  Briefcase,
+  Layers,
+  CheckCircle,
+  Globe,
+  Database,
+  Server,
+} from "lucide-react";
 
-// const ServicePage = () => {
-//   return <div>ServicePage</div>;
-// };
-
-// export default ServicePage;
-// ServicePage
-
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import RealTime from "../components/RealTime";
-import SoftwareDevPage from "../components/SoftwareDevPage";
-import WebDevPage from "../components/WebDevPage";
-import Digital from "../components/Digital";
-import TrainingOfferedPage from "../components/TrainingOfferedPage";
-import OpenCampusHiringPage from "../components/OpenCampusHiringPage";
-
-const SERVICES_META = [
-  {
-    id: "open-campus",
-    title: "Open Campus Hiring",
-    summary:
-      "Campus drives, placements & student engagement — bring career opportunities to your campus.",
-    icon: "🎓",
-    component: <OpenCampusHiringPage />,
-  },
-  {
-    id: "training",
-    title: "Training Offered",
-    summary:
-      "IELTS, GRE, TOEFL and technical training to prepare candidates for academic and industry success.",
-    icon: "📚",
-    component: <TrainingOfferedPage />,
-  },
-  {
-    id: "digital",
-    title: "Digital Marketing",
-    summary:
-      "SEO, Ads, Social & Analytics to grow brand visibility and drive conversions.",
-    icon: "📣",
-    component: <Digital />,
-  },
-  {
-    id: "webdev",
-    title: "Web Development",
-    summary:
-      "Static & dynamic websites, e-commerce and bespoke web platforms built with modern stacks.",
-    icon: "💻",
-    component: <WebDevPage />,
-  },
-  {
-    id: "software",
-    title: "Software Development",
-    summary:
-      "Enterprise & custom software — Admin, ERP, HMS, Payroll, and more, tailored to your needs.",
-    icon: "🧩",
-    component: <SoftwareDevPage />,
-  },
-  {
-    id: "realtime",
-    title: "Real Time Projects",
-    summary:
-      "Small, attractive real-time solutions to prototype & launch quickly with impact.",
-    icon: "⚡",
-    component: <RealTime />,
-  },
-];
-
-/** Simple testimonial data */
-const TESTIMONIALS = [
-  {
-    id: 1,
-    name: "Mrunal Umredkar",
-    role: "Student",
-    quote:
-      "If you want to make a career in Salesforce then S.S. Infotech helps. Salesforce is a comprehensive, practical and extremely affordable course. You'll learn exactly what it takes to be in the industry, and that will help you ace your certification exam.",
-  },
-  {
-    id: 2,
-    name: "Ritika Sharma",
-    role: "Alumnus",
-    quote:
-      "The practical projects and mentoring helped me build a portfolio that landed interviews at top firms. Highly recommended.",
-  },
-  {
-    id: 3,
-    name: "Amit Patel",
-    role: "Campus Rep",
-    quote:
-      "Organised campus drives and smooth coordination — SS Infotech made hiring simple and effective for our students.",
-  },
-];
-
-/** Utility: smooth scroll to an element ID */
-function scrollToId(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-/** Badge component */
-const Badge = ({ children, className = "" }) => (
-  <span
-    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${className} bg-gray-100 text-gray-900`}
-  >
-    {children}
-  </span>
-);
-
-/** Service teaser card used in overview */
-const ServiceTeaser = ({ id, title, summary, icon, onJump }) => (
-  <article
-    tabIndex="0"
-    role="button"
-    onClick={() => onJump(id)}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") onJump(id);
-    }}
-    className="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-lg transform transition hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#AB1EA9]"
-    aria-label={`Open ${title}`}
-  >
-    <div className="flex items-start gap-4">
-      <div
-        className="flex items-center justify-center rounded-lg w-12 h-12 text-xl flex-shrink-0 bg-gray-50"
-      >
-        <span aria-hidden>{icon}</span>
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">
-          {title}
-        </h3>
-        <p className="mt-1 text-sm text-gray-600">{summary}</p>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onJump(id);
-            }}
-            aria-label={`Explore ${title}`}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-[#AB1EA9] text-white hover:bg-[#9b1a93] transition-colors"
-          >
-            Explore
-          </button>
-          <button
-            aria-label={`Contact about ${title}`}
-            className="text-sm px-3 py-2 rounded-md border border-[#AB1EA9] text-[#AB1EA9] bg-transparent hover:bg-[#AB1EA9] hover:text-white transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              const mail = `mailto:info@ssinfotech.com?subject=Enquiry about ${encodeURIComponent(
-                title
-              )}`;
-              window.location.href = mail;
-            }}
-          >
-            Contact
-          </button>
-        </div>
-      </div>
-    </div>
-  </article>
-);
-
-/** Sticky side nav */
-const SideNav = ({ items, current, onJump }) => (
-  <nav
-    aria-label="Services quick navigation"
-    className="hidden md:flex md:flex-col md:gap-2 md:sticky md:top-28 md:pt-2"
-  >
-    {items.map((it) => (
-      <button
-        key={it.id}
-        onClick={() => onJump(it.id)}
-        className={`text-left px-3 py-2 rounded-md transition-colors text-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-          current === it.id
-            ? "bg-[#AB1EA9] text-white"
-            : "text-gray-900 bg-transparent"
-        }`}
-        aria-current={current === it.id}
-      >
-        {it.title}
-      </button>
-    ))}
-  </nav>
-);
-
-/** Testimonial carousel simple */
-const Testimonials = ({ items }) => {
-  const [index, setIndex] = useState(0);
-  const timeoutRef = useRef(null);
-  useEffect(() => {
-    const next = () => setIndex((i) => (i + 1) % items.length);
-    timeoutRef.current = setInterval(next, 5000);
-    return () => clearInterval(timeoutRef.current);
-  }, [items.length]);
-
-  function pause() {
-    clearInterval(timeoutRef.current);
-  }
-  function resume() {
-    timeoutRef.current = setInterval(() => setIndex((i) => (i + 1) % items.length), 5000);
-  }
-
-  return (
-    <section
-      className="mt-10 bg-white rounded-2xl p-6 shadow-sm"
-      onMouseEnter={pause}
-      onMouseLeave={resume}
-      aria-label="Testimonials"
-    >
-      <h2 className="text-2xl font-semibold mb-4 text-gray-900">
-        What People Are Saying About Us
-      </h2>
-      <div className="relative">
-        <div className="min-h-[120px]">
-          <blockquote className="text-gray-700">
-            <p className="text-gray-900">&ldquo;{items[index].quote}&rdquo;</p>
-            <footer className="mt-3 text-sm text-gray-600">
-              — <strong className="text-gray-900">{items[index].name}</strong>,{" "}
-              {items[index].role}
-            </footer>
-          </blockquote>
-        </div>
-
-        <div className="absolute right-0 top-0 flex gap-2">
-          <button
-            aria-label="Previous testimonial"
-            onClick={() => setIndex((i) => (i - 1 + items.length) % items.length)}
-            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 transition-colors"
-          >
-            ‹
-          </button>
-          <button
-            aria-label="Next testimonial"
-            onClick={() => setIndex((i) => (i + 1) % items.length)}
-            className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 transition-colors"
-          >
-            ›
-          </button>
-        </div>
-        <div className="mt-4 flex gap-2" role="tablist" aria-label="testimonial dots">
-          {items.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIndex(i)}
-              aria-label={`Go to testimonial ${i + 1}`}
-              className={`w-3 h-3 rounded-full transition-all ${
-                i === index ? "bg-[#AB1EA9] ring-2 ring-offset-1 ring-[#AB1EA9]" : "bg-gray-300 opacity-40"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-/** Contact CTA banner */
-const ContactCTA = () => (
-  <section
-    className="mt-10 rounded-2xl p-6 text-center bg-gray-50"
-  >
-    <h3 className="text-xl font-semibold text-gray-900">
-      Ready to start a project or schedule a campus drive?
-    </h3>
-    <p className="mt-2 text-gray-600">Talk to our team — we'll help you pick the right service and plan.</p>
-    <div className="mt-4 flex justify-center gap-3">
-      <a
-        href="mailto:info@ssinfotech.com"
-        aria-label="Email us"
-        className="inline-flex items-center px-5 py-2 rounded-md font-medium shadow-sm bg-[#AB1EA9] text-white hover:bg-[#9b1a93] transition-colors"
-      >
-        Email Us
-      </a>
-      <a
-        href="#contact"
-        aria-label="Request a callback"
-        className="inline-flex items-center px-5 py-2 rounded-md font-medium border border-[#FFB347] text-gray-900 bg-white hover:bg-[#FFB347] transition-colors"
-      >
-        Request Callback
-      </a>
-    </div>
-  </section>
-);
-
-/** Main parent ServicePage */
 export default function ServicePage() {
+  const services = [
+    {
+      id: "real-time",
+      title: "Real Time Project Development",
+      icon: Layers,
+      description:
+        "Complete real-world project development with end-to-end delivery — architecture, implementation, deployment and monitoring.",
+      highlights: ["Product scoping", "MVP delivery", "Real-time systems", "Post-launch support"],
+    },
+    {
+      id: "software",
+      title: "Software Development",
+      icon: Server,
+      description: "Bespoke software engineering for web, mobile and backend systems with modern engineering practices.",
+      highlights: ["API design", "Microservices", "Testing & QA", "CI/CD"],
+    },
+    {
+      id: "web-app",
+      title: "Web & App Development",
+      icon: Code,
+      description: "Responsive websites and native-like mobile apps built with React, React Native and cross-platform tools.",
+      highlights: ["UI/UX focus", "PWA & Mobile", "Performance tuning", "Accessibility"],
+    },
+    {
+      id: "digital-marketing",
+      title: "Digital Marketing",
+      icon: Megaphone,
+      description: "Data driven marketing: SEO, paid ads, content and growth experiments to increase conversions and users.",
+      highlights: ["SEO & Content", "Paid Social", "Analytics & CRO", "Growth experiments"],
+    },
+    {
+      id: "ielts",
+      title: "IELTS / GRE / TOEFL Training",
+      icon: BookOpen,
+      description: "Exam-focused training programs with practice tests, strategies and one-on-one mentoring to maximize scores.",
+      highlights: ["Personalized coaching", "Mock tests", "Score improvement plan", "Flexible batches"],
+    },
+    {
+      id: "campus-hiring",
+      title: "Campus Hiring Program",
+      icon: Users,
+      description: "Structured campus drives and hiring partnerships to connect talent with hiring companies.",
+      highlights: ["Drive coordination", "Screening & tests", "Interview support", "Offer management"],
+    },
+    {
+      id: "career-consult",
+      title: "Jobs & Career Consultant",
+      icon: Briefcase,
+      description: "Career counselling, resume building, interview coaching and placement assistance for students and professionals.",
+      highlights: ["Resume review", "Mock interviews", "Job matching", "Career roadmap"],
+    },
+  ];
+
+  const products = [
+    {
+      id: "ecom",
+      name: "E‑commerce Platform",
+      description: "Scalable storefronts with cart, checkout, payments and admin dashboards for merchants.",
+      tech: ["React", "Node.js", "Postgres"],
+      image: "/placeholder.svg",
+    },
+    {
+      id: "edtech",
+      name: "EdTech LMS",
+      description: "Learning management system for courses, assessments, student tracking and certifications.",
+      tech: ["Next.js", "Firebase", "Stripe"],
+      image: "/placeholder.svg",
+    },
+    {
+      id: "recruit",
+      name: "Recruitment Portal",
+      description: "End-to-end recruitment product with job listings, applicant tracking and campus drive integration.",
+      tech: ["React", "GraphQL", "Postgres"],
+      image: "/placeholder.svg",
+    },
+    {
+      id: "analytics",
+      name: "Analytics Dashboard",
+      description: "Operational dashboards with real-time metrics, alerts and role based access.",
+      tech: ["D3", "Node.js", "TimescaleDB"],
+      image: "/placeholder.svg",
+    },
+  ];
+
+  const categories = [
+    { id: "all", label: "All" },
+    { id: "development", label: "Development" },
+    { id: "training", label: "Training" },
+    { id: "hiring", label: "Hiring & Careers" },
+    { id: "marketing", label: "Marketing" },
+  ];
+
   const [query, setQuery] = useState("");
-  const [active, setActive] = useState("open-campus");
-  const containerRef = useRef(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedService, setSelectedService] = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", message: "", service: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return SERVICES_META;
-    const q = query.toLowerCase();
-    return SERVICES_META.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.summary.toLowerCase().includes(q)
-    );
-  }, [query]);
-
-  useEffect(() => {
-    function onScroll() {
-      // update active based on scroll position of target sections
-      const threshold = 150;
-      for (const s of SERVICES_META) {
-        const el = document.getElementById(s.id);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        if (rect.top <= threshold && rect.bottom > threshold) {
-          setActive(s.id);
-          break;
-        }
+    const q = query.trim().toLowerCase();
+    return services.filter((s) => {
+      if (activeCategory !== "all") {
+        if (activeCategory === "development" && !["real-time", "software", "web-app"].includes(s.id)) return false;
+        if (activeCategory === "training" && s.id === "ielts") return true;
+        if (activeCategory === "hiring" && ["campus-hiring", "career-consult"].indexOf(s.id) === -1) return false;
+        if (activeCategory === "marketing" && s.id !== "digital-marketing") return false;
       }
+      if (!q) return true;
+      return (s.title + " " + s.description + " " + s.highlights.join(" ")).toLowerCase().includes(q);
+    });
+  }, [query, activeCategory]);
+
+  const canSubmit = form.name.trim() && form.email.includes("@") && form.service;
+
+  function handleFormChange(e) {
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
+  }
+
+  function handleSelect(value) {
+    setForm((s) => ({ ...s, service: value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 700));
+      toast({ title: "Request sent", description: `We'll contact you at ${form.email} regarding ${form.service}.` });
+      setForm({ name: "", email: "", message: "", service: "" });
+    } finally {
+      setSubmitting(false);
     }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }
 
   return (
-    <main className="min-h-screen bg-white" ref={containerRef}>
-      {/* Main content grid with sticky side nav */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-12 gap-8 py-10">
-        <aside className="md:col-span-3 hidden md:block">
-          <SideNav items={SERVICES_META} current={active} onJump={scrollToId} />
-        </aside>
+    <div className="space-y-8">
+      <section className="bg-gradient-to-br from-brand-blue to-brand-blue-dark text-white py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge className="bg-brand-accent text-white">Our Services</Badge>
+          <h1 className="text-4xl lg:text-5xl font-bold mt-4">
+            Product engineering, education and hiring services that accelerate careers
+          </h1>
+          <p className="text-lg text-blue-100 max-w-3xl mx-auto mt-4">
+            From building production-grade products to training and campus hiring — we partner with students and
+            companies to create impact.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link to="/contact">
+              <Button className="bg-white text-brand-blue hover:bg-white/90">Talk to an Expert</Button>
+            </Link>
+            <Link to="/projects">
+              <Button variant="ghost" className="text-white border-white/20">See Our Work</Button>
+            </Link>
+          </div>
+        </div>
+      </section>
 
-        <section className="md:col-span-9 space-y-8">
-          {/* Services overview grid */}
-          <section aria-labelledby="overview-heading">
-            <h2 id="overview-heading" className="text-2xl font-semibold text-gray-900">
-              Services Overview
-            </h2>
-            <p className="text-gray-600 mt-2 max-w-2xl">
-              A compact view of our primary services. Click a card to jump to the full section and explore detailed offerings.
-            </p>
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {filtered.map((s) => (
-                <ServiceTeaser key={s.id} {...s} onJump={(id) => scrollToId(id)} />
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+            <div className="w-full md:w-1/2">
+              <Input
+                placeholder="Search services, e.g. ‘mobile app’, ‘campus’"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search services"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCategory(c.id)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+                    activeCategory === c.id ? "bg-brand-blue text-white" : "bg-muted"
+                  }`}
+                >
+                  {c.label}
+                </button>
               ))}
             </div>
-          </section>
+          </div>
 
-          {/* Render each imported section in order (each should have matching IDs inside) */}
-          <section id="open-campus" aria-labelledby="open-campus-heading">
-            <h2 id="open-campus-heading" className="text-xl font-semibold text-gray-900">
-              Open Campus Hiring
-            </h2>
-            <div className="mt-4">
-              <OpenCampusHiringPage />
-            </div>
-          </section>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((s) => (
+              <Card
+                key={s.id}
+                className={`border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer ${
+                  selectedService === s.id ? "ring-2 ring-brand-blue" : ""
+                }`}
+                onClick={() => setSelectedService(s.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-3">
+                        <s.icon className="h-6 w-6 text-brand-blue" />
+                        <CardTitle className="text-lg">{s.title}</CardTitle>
+                      </div>
+                      <CardDescription className="text-sm text-muted-foreground">{s.description}</CardDescription>
+                    </div>
+                    <div>
+                      <Badge className="bg-brand-accent text-white">Top</Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="list-disc list-inside text-sm space-y-1">
+                    {s.highlights.map((h, i) => (
+                      <li key={i}>{h}</li>
+                    ))}
+                  </ul>
 
-          <section id="training" aria-labelledby="training-heading" className="pt-6">
-            <h2 id="training-heading" className="text-xl font-semibold text-gray-900">
-              Training Offered
-            </h2>
-            <div className="mt-4">
-              <TrainingOfferedPage />
-            </div>
-          </section>
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="text-sm text-muted-foreground">Learn more about delivery & pricing</div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant={selectedService === s.id ? "secondary" : "default"}
+                        onClick={() => setSelectedService(s.id)}
+                        aria-label={`Learn more about ${s.title}`}
+                      >
+                        Learn More
+                      </Button>
+                      <Link to="/contact">
+                        <Button className="bg-brand-blue text-white">Get Quote</Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <section id="digital" aria-labelledby="digital-heading" className="pt-6">
-            <h2 id="digital-heading" className="text-xl font-semibold text-gray-900">
-              Digital Marketing
-            </h2>
-            <div className="mt-4">
-              <Digital />
-            </div>
-          </section>
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold">Products we build</h2>
+            <p className="text-muted-foreground mt-2">A selection of product types we deliver end-to-end for startups and enterprises.</p>
+          </div>
 
-          <section id="webdev" aria-labelledby="webdev-heading" className="pt-6">
-            <h2 id="webdev-heading" className="text-xl font-semibold text-gray-900">
-              Web Development
-            </h2>
-            <div className="mt-4">
-              <WebDevPage />
-            </div>
-          </section>
-
-          <section id="software" aria-labelledby="software-heading" className="pt-6">
-            <h2 id="software-heading" className="text-xl font-semibold text-gray-900">
-              Software Development
-            </h2>
-            <div className="mt-4">
-              <SoftwareDevPage />
-            </div>
-          </section>
-
-          <section id="realtime" aria-labelledby="realtime-heading" className="pt-6">
-            <h2 id="realtime-heading" className="text-xl font-semibold text-gray-900">
-              Real Time Projects
-            </h2>
-            <div className="mt-4">
-              <RealTime />
-            </div>
-          </section>
-
-          {/* Testimonials */}
-          <Testimonials items={TESTIMONIALS} />
-
-          {/* Contact CTA */}
-          <ContactCTA />
-
-          {/* Footer */}
-          <footer id="contact" className="mt-10 border-t pt-6 pb-12">
-            <div className="flex flex-col md:flex-row md:justify-between gap-6">
-              <div>
-                <h4 className="text-lg font-bold text-gray-900">
-                  SS Infotech
-                </h4>
-                <p className="mt-2 text-sm text-gray-600 max-w-md">
-                  We provide end-to-end IT solutions, training and campus hiring to help students and businesses succeed in the digital era.
-                </p>
-              </div>
-
-              <div className="flex gap-4 items-center">
-                <div>
-                  <h5 className="text-sm font-medium text-gray-900">
-                    Email
-                  </h5>
-                  <a href="mailto:info@ssinfotech.com" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    info@ssinfotech.com
-                  </a>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.map((p) => (
+              <Card key={p.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+                <div className="h-36 bg-gradient-to-br from-gray-100 to-white flex items-center justify-center">
+                  <img src={p.image} alt={p.name} className="h-20 w-auto" />
                 </div>
-                <div>
-                  <h5 className="text-sm font-medium text-gray-900">
-                    Phone
-                  </h5>
-                  <p className="text-sm text-gray-600">+91 12345 67890</p>
+                <CardContent>
+                  <CardTitle className="text-lg">{p.name}</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">{p.description}</CardDescription>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {p.tech.map((t) => (
+                      <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex justify-end">
+                    <Link to="/projects">
+                      <Button className="bg-brand-blue text-white">Explore</Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div>
+              <h2 className="text-2xl font-bold">Why choose SS Infotech for services?</h2>
+              <p className="text-muted-foreground mt-4">
+                We combine deep technical expertise with practical delivery experience. From prototyping to maintained
+                production systems and training, our teams focus on measurable outcomes and knowledge transfer.
+              </p>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="h-6 w-6 text-brand-blue mt-1" />
+                  <div>
+                    <h4 className="font-semibold">Dedicated teams</h4>
+                    <p className="text-sm text-muted-foreground">Experienced engineers aligned to your product goals.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="h-6 w-6 text-brand-blue mt-1" />
+                  <div>
+                    <h4 className="font-semibold">Transparent pricing</h4>
+                    <p className="text-sm text-muted-foreground">Clear scope, predictable costs, and flexible engagement models.</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 text-sm text-gray-500">
-              © {new Date().getFullYear()} SS Infotech. All rights reserved.
-            </div>
-          </footer>
-        </section>
-      </div>
-    </main>
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Request a Consultation</CardTitle>
+                <CardDescription>Share your details and we'll reach out within one business day.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-3" onSubmit={handleSubmit}>
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" name="name" value={form.name} onChange={handleFormChange} />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" name="email" type="email" value={form.email} onChange={handleFormChange} />
+                  </div>
+                  <div>
+                    <Label htmlFor="service">Interested Service</Label>
+                    <Select onValueChange={handleSelect}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((s) => (
+                          <SelectItem key={s.id} value={s.title}>
+                            {s.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea id="message" name="message" rows={4} value={form.message} onChange={handleFormChange} />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button type="submit" disabled={!canSubmit || submitting} className="bg-brand-blue text-white">
+                      {submitting ? "Sending..." : "Request Consultation"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
