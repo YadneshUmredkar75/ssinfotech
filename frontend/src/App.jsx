@@ -14,6 +14,7 @@ import Services from "./components/Services";
 import AboutUs from "./pages/AboutUs";
 import ServicePage from "./pages/ServicePage";
 import ContactPage from "./pages/ContactUs"
+import Gallery from "./pages/Gallary";
 
 
 function App() {
@@ -26,10 +27,12 @@ function App() {
           <Route path="/training" element={<TrainingAndPlacements />} />
           <Route path="/serach-jobs" element={<Jobs/>} />
           <Route path="/placements" element={<Placements/>}/>
+          <Route path="/gallary" element={<Gallery/>} />
 
           <Route path="/about" element={<AboutUs />} />
           <Route path="/services" element={<ServicePage/>} />
           <Route path="/contact" element={<ContactPage/>} />
+
         </Routes>
       </main>
       <Footer />

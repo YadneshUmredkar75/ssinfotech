@@ -484,7 +484,7 @@ export default function JobSearch() {
                 return matchesQuery && matchesLocation && matchesCategory && matchesSalary && matchesExperience && matchesType && matchesSkills && matchesPostedWithin;
               }).length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Your Company Jobs</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Our Company Jobs</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {adminJobs.filter((job) => {
                       const matchesExperience = experience ? job.experience === experience : true;
