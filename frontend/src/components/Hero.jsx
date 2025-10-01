@@ -1,16 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause } from "lucide-react";
 
-// Sample slides data
+// Sample slides data with corrected paths
 const slides = [
   {
-    type: "image",
-    url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80",
-    title: "Welcome to Our Platform",
-    subtitle: "Discover amazing features and join our community",
-    cta: "Get Started",
-    duration: 5000, // Default duration for images (in ms)
+    type: "video",
+    url: "/public/video/hero4.mp4",
+    title: "Experience the Future",
+    subtitle: "Innovative solutions at your fingertips",
+    cta: "Learn More",
   },
   {
     type: "video",
@@ -26,60 +25,77 @@ const slides = [
     subtitle: "Be part of something extraordinary",
     cta: "Learn More",
   },
-  {
-    type: "image",
-    url: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1470&q=80",
-    title: "Join Us Today",
-    subtitle: "Be part of something extraordinary",
-    cta: "Sign Up",
-    duration: 5000, // Default duration for images
-  },
 ];
 
 const Hero = () => {
   const [current, setCurrent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const videoRef = useRef(null); // Ref to track video element
+  const videoRefs = useRef(slides.map(() => React.createRef())); // Create a ref for each slide
 
   // Auto-slide functionality
   useEffect(() => {
     if (!isPlaying) return;
 
-    let timer;
     const currentSlide = slides[current];
+    const videoElement = videoRefs.current[current].current;
+    let timer;
 
-    if (currentSlide.type === "video" && videoRef.current) {
-      // Get video duration dynamically
-      const videoDuration = videoRef.current.duration * 1000 || 5000; // Fallback to 5s if duration unavailable
-      videoRef.current.play(); // Ensure video plays
-      timer = setTimeout(() => {
-        setCurrent((prev) => (prev + 1) % slides.length);
-      }, videoDuration);
+    if (currentSlide.type === "video" && videoElement) {
+      // Reset and play video
+      videoElement.currentTime = 0;
+      videoElement.play().catch((error) => {
+        console.error("Video playback failed:", error);
+      });
+
+      // Wait for video metadata to get duration
+      const onLoadedMetadata = () => {
+        const videoDuration = videoElement.duration * 1000 || 5000; // Fallback to 5s
+        timer = setTimeout(() => {
+          setCurrent((prev) => (prev + 1) % slides.length);
+        }, videoDuration);
+      };
+
+      videoElement.addEventListener("loadedmetadata", onLoadedMetadata);
+
+      return () => {
+        if (videoElement) {
+          videoElement.removeEventListener("loadedmetadata", onLoadedMetadata);
+        }
+        clearTimeout(timer);
+      };
     } else {
-      // Use default duration for images
+      // Fallback for non-video slides (if any)
       timer = setTimeout(() => {
         setCurrent((prev) => (prev + 1) % slides.length);
       }, currentSlide.duration || 5000);
-    }
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [current, isPlaying, slides.length]);
 
   const goToSlide = (index) => {
     setCurrent(index);
-    if (slides[index].type === "video" && videoRef.current) {
-      videoRef.current.currentTime = 0; // Reset video to start
-      videoRef.current.play();
+    const videoElement = videoRefs.current[index].current;
+    if (slides[index].type === "video" && videoElement) {
+      videoElement.currentTime = 0; // Reset video to start
+      if (isPlaying) {
+        videoElement.play().catch((error) => {
+          console.error("Video playback failed:", error);
+        });
+      }
     }
   };
 
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying);
-    if (slides[current].type === "video" && videoRef.current) {
+    const videoElement = videoRefs.current[current].current;
+    if (slides[current].type === "video" && videoElement) {
       if (!isPlaying) {
-        videoRef.current.play();
+        videoElement.play().catch((error) => {
+          console.error("Video playback failed:", error);
+        });
       } else {
-        videoRef.current.pause();
+        videoElement.pause();
       }
     }
   };
@@ -107,7 +123,7 @@ const Hero = () => {
                 />
               ) : (
                 <video
-                  ref={videoRef}
+                  ref={videoRefs.current[index]}
                   src={slide.url}
                   autoPlay={isPlaying}
                   muted
@@ -184,11 +200,11 @@ const Hero = () => {
         <motion.div
           className="h-full bg-[#AB1EA9]"
           initial={{ width: "0%" }}
-          animate={{ width: "100%" }}
+          animate={{ width: isPlaying ? "100%" : "0%" }}
           transition={{
             duration:
-              slides[current].type === "video" && videoRef.current
-                ? videoRef.current.duration || 5
+              slides[current].type === "video" && videoRefs.current[current].current
+                ? videoRefs.current[current].current.duration || 5
                 : slides[current].duration / 1000 || 5,
             ease: "linear",
           }}
