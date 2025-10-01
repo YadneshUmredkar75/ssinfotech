@@ -1,29 +1,87 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import slides from "../data";
-import { Play, Pause } from "lucide-react"; // Removed ChevronLeft and ChevronRight
+import { Play, Pause } from "lucide-react";
+
+// Sample slides data
+const slides = [
+  {
+    type: "image",
+    url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80",
+    title: "Welcome to Our Platform",
+    subtitle: "Discover amazing features and join our community",
+    cta: "Get Started",
+    duration: 5000, // Default duration for images (in ms)
+  },
+  {
+    type: "video",
+    url: "/public/video/hero1.mp4",
+    title: "Experience the Future",
+    subtitle: "Innovative solutions at your fingertips",
+    cta: "Learn More",
+  },
+  {
+    type: "video",
+    url: "/public/video/hero2.mp4",
+    title: "Join Us Today",
+    subtitle: "Be part of something extraordinary",
+    cta: "Learn More",
+  },
+  {
+    type: "image",
+    url: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1470&q=80",
+    title: "Join Us Today",
+    subtitle: "Be part of something extraordinary",
+    cta: "Sign Up",
+    duration: 5000, // Default duration for images
+  },
+];
 
 const Hero = () => {
   const [current, setCurrent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const videoRef = useRef(null); // Ref to track video element
 
   // Auto-slide functionality
   useEffect(() => {
     if (!isPlaying) return;
-    
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    
-    return () => clearInterval(timer);
-  }, [slides.length, isPlaying]);
+
+    let timer;
+    const currentSlide = slides[current];
+
+    if (currentSlide.type === "video" && videoRef.current) {
+      // Get video duration dynamically
+      const videoDuration = videoRef.current.duration * 1000 || 5000; // Fallback to 5s if duration unavailable
+      videoRef.current.play(); // Ensure video plays
+      timer = setTimeout(() => {
+        setCurrent((prev) => (prev + 1) % slides.length);
+      }, videoDuration);
+    } else {
+      // Use default duration for images
+      timer = setTimeout(() => {
+        setCurrent((prev) => (prev + 1) % slides.length);
+      }, currentSlide.duration || 5000);
+    }
+
+    return () => clearTimeout(timer);
+  }, [current, isPlaying, slides.length]);
 
   const goToSlide = (index) => {
     setCurrent(index);
+    if (slides[index].type === "video" && videoRef.current) {
+      videoRef.current.currentTime = 0; // Reset video to start
+      videoRef.current.play();
+    }
   };
 
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying);
+    if (slides[current].type === "video" && videoRef.current) {
+      if (!isPlaying) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
   };
 
   return (
@@ -49,9 +107,9 @@ const Hero = () => {
                 />
               ) : (
                 <video
+                  ref={videoRef}
                   src={slide.url}
-                  autoPlay
-                  loop
+                  autoPlay={isPlaying}
                   muted
                   playsInline
                   className="w-full h-full object-cover"
@@ -92,7 +150,7 @@ const Hero = () => {
       </AnimatePresence>
 
       {/* Play/Pause Button */}
-      {/* <button
+      <button
         onClick={togglePlayPause}
         className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 backdrop-blur-sm"
         aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
@@ -101,9 +159,9 @@ const Hero = () => {
       </button>
 
       {/* Slide Indicator */}
-      {/* <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+      <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
         {current + 1} / {slides.length}
-      </div> */} 
+      </div>
 
       {/* Navigation Dots */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -127,7 +185,13 @@ const Hero = () => {
           className="h-full bg-[#AB1EA9]"
           initial={{ width: "0%" }}
           animate={{ width: "100%" }}
-          transition={{ duration: 5, ease: "linear" }}
+          transition={{
+            duration:
+              slides[current].type === "video" && videoRef.current
+                ? videoRef.current.duration || 5
+                : slides[current].duration / 1000 || 5,
+            ease: "linear",
+          }}
           key={current}
         />
       </div>
