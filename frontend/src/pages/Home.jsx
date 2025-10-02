@@ -1,36 +1,64 @@
 import React from "react";
 import Hero from "../components/Hero";
 import About from "../components/About";
-import CompanyGoal  from "../components/CompanyGoal";
+import CompanyGoal from "../components/CompanyGoal";
 import SsGbranch from "../components/SsGbranch";
 import BoardAdvisory from "../components/BoardAdvisory";
 import OurTeam from "../components/OurTeam";
-import LogoSlider from "../components/Logoslider";
+import LogoSlider from "../components/LogoSlider";
 import ContactForm from "../components/ContactForm";
 import Services from "../components/Services";
+
 const Home = () => {
   return (
-    <div>
-      <Hero/>
-      <CompanyGoal/>
-      <About/>
-      <section className="flex flex-col items-center justify-center text-center space-y-8 bg-gray pt-25">
-      <h2 className="text-3xl md:text-4xl font-bold text-[#AB1EA9] mb-12 text-center">
-        Our Branches
-      </h2>
-      <SsGbranch/>
+    <div className="bg-white text-[#111827]">
+      {/* Hero Section */}
+      <Hero />
+
+      {/* About Section */}
+      <section className="py-16 px-4 md:px-12">
+        <About />
       </section>
-      <Services/>
-      {/* Meet the Team */}
-      {/* <section className="min-h-screen flex flex-col items-center justify-center text-center space-y-8 bg-gray-50 ">
-        <OurTeam />
-        <BoardAdvisory/>
+
+      {/* Company Goal Section (Optional) */}
+      {/* <section className="py-16 bg-gray-50 flex flex-col items-center justify-center text-center space-y-8">
+        <CompanyGoal />
       </section> */}
-      {/* Our Client Section */}
-      <section className="flex flex-col items-center justify-center text-center space-y-8">
-      <LogoSlider/>
+
+      {/* Branches Section */}
+      <section className="py-16 px-4 md:px-12 bg-gray-50 flex flex-col items-center justify-center space-y-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-[#AB1EA9]">
+          Our Branches
+        </h2>
+        <SsGbranch />
       </section>
-      <ContactForm/>
+
+      {/* Services Section */}
+      <section className="py-16 px-4 md:px-12">
+        <Services />
+      </section>
+
+      {/* Team & Advisory Section (Optional) */}
+      {/* <section className="py-16 bg-gray-50 flex flex-col items-center justify-center text-center space-y-12">
+        <OurTeam />
+        <BoardAdvisory />
+      </section> */}
+
+      {/* Client Logos */}
+      <section className="py-16 px-4 md:px-12 flex flex-col items-center justify-center space-y-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-[#AB1EA9]">
+          Our Clients
+        </h2>
+        <LogoSlider />
+      </section>
+
+      {/* Contact Form */}
+      <section className="py-16 px-4 md:px-12 bg-gray-50 flex flex-col items-center justify-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-[#AB1EA9] mb-8 text-center">
+          Get in Touch
+        </h2>
+        <ContactForm />
+      </section>
     </div>
   );
 };

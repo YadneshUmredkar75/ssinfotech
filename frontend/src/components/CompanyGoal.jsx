@@ -3,11 +3,11 @@ import ScrollStack, { ScrollStackItem } from './ScrollStack';
 
 const CompanyGoal = () => {
   return (
-    <div className="h-screen ">
+    <div className="h-screen">
     {<ScrollStack allowParentScrollOnEnd>
       {/* Mission */}
       <ScrollStackItem>
-        <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex md:flex-row items-center gap-6">
           <img
             src="/img/aboutus/mis.jpg"
             alt="Mission"
@@ -29,7 +29,7 @@ const CompanyGoal = () => {
 
       {/* Objective */}
       <ScrollStackItem>
-        <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex md:flex-row items-center gap-6">
           <img src="/img/aboutus/obj.jpg" alt="Objective" className="w-40 h-40 object-cover rounded-2xl shadow-md" />
           <div>
             <h2 className="text-2xl font-bold mb-2 text-[#AB1EA9]">Our Objective</h2>
@@ -47,7 +47,7 @@ const CompanyGoal = () => {
 
       {/* Vision */}
       <ScrollStackItem>
-        <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex md:flex-row items-center gap-6">
           <img src="/img/aboutus/vis.jpg" alt="Vision" className="w-40 h-40 object-cover rounded-2xl shadow-md" />
           <div>
             <h2 className="text-2xl font-bold mb-2 text-[#AB1EA9]">Our Vision</h2>
@@ -64,7 +64,7 @@ const CompanyGoal = () => {
 
       {/* Care */}
       <ScrollStackItem>
-        <div className="flex flex-col md:flex-row items-center gap-6">
+        <div className="flex md:flex-row items-center gap-6">
           <img src="/img/aboutus/care.jpg" alt="Care" className="w-40 h-40 object-cover rounded-2xl shadow-md" />
           <div>
             <h2 className="text-2xl font-bold mb-2 text-[#AB1EA9]">Our Care</h2>
