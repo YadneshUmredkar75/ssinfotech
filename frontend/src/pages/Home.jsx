@@ -46,9 +46,9 @@ const Home = () => {
 
       {/* Client Logos */}
       <section className="py-16 px-4 md:px-12 flex flex-col items-center justify-center space-y-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-[#AB1EA9]">
+        {/* <h2 className="text-3xl md:text-4xl font-bold text-[#AB1EA9]">
           Our Clients
-        </h2>
+        </h2> */}
         <LogoSlider />
       </section>
 
